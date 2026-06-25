@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 import 'package:flame/events.dart';
@@ -15,6 +16,7 @@ class SpaceShooterGame extends FlameGame
   late TextComponent scoreText;
 
   bool isIntro = true;
+  int introEnemiesLeft = 3;
   SpawnComponent? enemySpawner;
   SpawnComponent? bulletSpawner;
 
@@ -45,8 +47,10 @@ class SpaceShooterGame extends FlameGame
     );
     add(scoreText);
 
-    // Spawn single intro/story enemy at the start
-    add(Enemy()..position = Vector2(size.x / 2, 100));
+    // Spawn 3 intro/story enemies at the start
+    add(Enemy()..position = Vector2(size.x * 0.25 - 20, 80));
+    add(Enemy()..position = Vector2(size.x * 0.50 - 20, 100));
+    add(Enemy()..position = Vector2(size.x * 0.75 - 20, 120));
 
     // ==== Auto Bullet Spawn ====
     bulletSpawner = SpawnComponent(
@@ -63,6 +67,39 @@ class SpaceShooterGame extends FlameGame
     score += 10;
     scoreText.text = 'Score: $score';
     debugPrint('Score: $score');
+  }
+
+  void decrementIntroEnemies() {
+    introEnemiesLeft--;
+    if (introEnemiesLeft <= 0) {
+      onIntroEnemyDestroyed();
+    }
+  }
+
+  @override
+  void update(double dt) {
+    super.update(dt);
+
+    if (isIntro) {
+      final activeEnemies = children.whereType<Enemy>();
+      if (activeEnemies.isNotEmpty) {
+        final targetEnemy = activeEnemies.first;
+        // Align player center with target enemy center
+        double targetX =
+            targetEnemy.position.x +
+            (targetEnemy.size.x / 2) -
+            (player.size.x / 2);
+        double moveSpeed = 400 * dt;
+
+        if ((player.position.x - targetX).abs() > 4.0) {
+          if (player.position.x < targetX) {
+            player.position.x = min(player.position.x + moveSpeed, targetX);
+          } else {
+            player.position.x = max(player.position.x - moveSpeed, targetX);
+          }
+        }
+      }
+    }
   }
 
   void onIntroEnemyDestroyed() {
@@ -106,7 +143,10 @@ class SpaceShooterGame extends FlameGame
     children.whereType<Bullet>().forEach((bullet) => bullet.removeFromParent());
 
     if (isIntro) {
-      add(Enemy()..position = Vector2(size.x / 2, 100));
+      introEnemiesLeft = 3;
+      add(Enemy()..position = Vector2(size.x * 0.25 - 20, 80));
+      add(Enemy()..position = Vector2(size.x * 0.50 - 20, 100));
+      add(Enemy()..position = Vector2(size.x * 0.75 - 20, 120));
     }
 
     resumeEngine();

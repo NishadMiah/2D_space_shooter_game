@@ -28,7 +28,7 @@ class Enemy extends SpriteComponent
     if (position.y > game.size.y) {
       removeFromParent();
       if (game.isIntro) {
-        game.onIntroEnemyDestroyed();
+        game.decrementIntroEnemies();
       } else {
         game.gameOver();
       }
@@ -43,16 +43,18 @@ class Enemy extends SpriteComponent
     super.onCollisionStart(intersectionPoints, other);
 
     if (other is Bullet) {
-      game.increaseScore();
+      if (!game.isIntro) {
+        game.increaseScore();
+      }
       removeFromParent();
       other.removeFromParent();
       if (game.isIntro) {
-        game.onIntroEnemyDestroyed();
+        game.decrementIntroEnemies();
       }
     } else if (other == game.player) {
       if (game.isIntro) {
         removeFromParent();
-        game.onIntroEnemyDestroyed();
+        game.decrementIntroEnemies();
       } else {
         game.gameOver();
       }
