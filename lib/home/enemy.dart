@@ -2,16 +2,17 @@ import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 import 'package:flame_game/home/bullet.dart';
 import 'package:flame_game/home/space_shooter_game.dart';
-import 'package:flutter/material.dart';
 
-class Enemy extends RectangleComponent
+class Enemy extends SpriteComponent
     with CollisionCallbacks, HasGameReference<SpaceShooterGame> {
-  Enemy() : super(size: Vector2(40, 40), paint: Paint()..color = Colors.red);
+  Enemy() : super(size: Vector2(40, 40));
 
   final double speed = 200;
   @override
   Future<void> onLoad() async {
     super.onLoad();
+    sprite = await game.loadSprite('enemy.png',);
+
     add(RectangleHitbox());
   }
 
