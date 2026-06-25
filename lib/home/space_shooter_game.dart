@@ -156,7 +156,8 @@ class SpaceShooterGame extends FlameGame
   // ==== Drag ====
   @override
   void onPanUpdate(DragUpdateInfo info) {
-    player.position.x += info.delta.global.x;
+    player.position.x = (player.position.x + info.delta.global.x)
+        .clamp(0.0, size.x - player.size.x);
   }
 
   // ==== Tap ====
