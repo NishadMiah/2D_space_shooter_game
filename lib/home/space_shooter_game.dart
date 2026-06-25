@@ -48,9 +48,9 @@ class SpaceShooterGame extends FlameGame
     add(scoreText);
 
     // Spawn 3 intro/story enemies at the start
-    add(Enemy()..position = Vector2(size.x * 0.25 - 20, 80));
-    add(Enemy()..position = Vector2(size.x * 0.50 - 20, 100));
-    add(Enemy()..position = Vector2(size.x * 0.75 - 20, 120));
+    add(Enemy()..position = Vector2(size.x * 0.25, 80));
+    add(Enemy()..position = Vector2(size.x * 0.50, 100));
+    add(Enemy()..position = Vector2(size.x * 0.75, 120));
 
     // ==== Auto Bullet Spawn ====
     bulletSpawner = SpawnComponent(
@@ -119,7 +119,7 @@ class SpaceShooterGame extends FlameGame
       enemySpawner = SpawnComponent(
         factory: (index) => Enemy(),
         period: 1.0,
-        area: Rectangle.fromLTWH(0, 0, size.x - 40, 0),
+        area: Rectangle.fromLTWH(20, 0, size.x - 40, 0),
       );
       add(enemySpawner!);
     }
@@ -144,9 +144,9 @@ class SpaceShooterGame extends FlameGame
 
     if (isIntro) {
       introEnemiesLeft = 3;
-      add(Enemy()..position = Vector2(size.x * 0.25 - 20, 80));
-      add(Enemy()..position = Vector2(size.x * 0.50 - 20, 100));
-      add(Enemy()..position = Vector2(size.x * 0.75 - 20, 120));
+      add(Enemy()..position = Vector2(size.x * 0.25, 80));
+      add(Enemy()..position = Vector2(size.x * 0.50, 100));
+      add(Enemy()..position = Vector2(size.x * 0.75, 120));
     }
 
     resumeEngine();
@@ -156,8 +156,10 @@ class SpaceShooterGame extends FlameGame
   // ==== Drag ====
   @override
   void onPanUpdate(DragUpdateInfo info) {
-    player.position.x = (player.position.x + info.delta.global.x)
-        .clamp(0.0, size.x - player.size.x);
+    player.position.x = (player.position.x + info.delta.global.x).clamp(
+      0.0,
+      size.x - player.size.x,
+    );
   }
 
   // ==== Tap ====

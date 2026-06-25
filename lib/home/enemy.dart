@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 import 'package:aetherius/home/bullet.dart';
@@ -6,7 +7,7 @@ import 'package:flutter/material.dart';
 
 class Enemy extends SpriteComponent
     with CollisionCallbacks, HasGameReference<SpaceShooterGame> {
-  Enemy() : super(size: Vector2(40, 40));
+  Enemy() : super(size: Vector2(40, 40), anchor: Anchor.center);
 
   final double speed = 200;
   @override
@@ -15,6 +16,7 @@ class Enemy extends SpriteComponent
     sprite = await game.loadSprite('enemy.png');
     paint = Paint()
       ..colorFilter = const ColorFilter.mode(Colors.red, BlendMode.srcIn);
+    angle = math.pi;
 
     add(RectangleHitbox());
   }
