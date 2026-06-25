@@ -9,7 +9,7 @@ import 'package:flutter/material.dart';
 
 class SpaceShooterGame extends FlameGame
     with PanDetector, TapCallbacks, HasCollisionDetection {
-  late RectangleComponent player;
+  late SpriteComponent player;
   int score = 0;
   late TextComponent scoreText;
   @override
@@ -17,9 +17,10 @@ class SpaceShooterGame extends FlameGame
     super.onLoad();
 
     //===== player =====
-    player = RectangleComponent(
+    images.prefix = 'assets/icons/';
+    player = SpriteComponent(
+      sprite: await loadSprite('player.png'),
       size: Vector2(50, 50),
-      paint: Paint()..color = Colors.red,
     );
     player.position = Vector2(size.x / 2, size.y - 100);
     //=== load player ====
