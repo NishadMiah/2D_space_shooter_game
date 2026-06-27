@@ -16,10 +16,7 @@ class Enemy extends SpriteComponent
   double _flashTimer = 0;
 
   Enemy({this.type = EnemyType.basic})
-      : super(
-          size: _sizeFor(type),
-          anchor: Anchor.center,
-        );
+    : super(size: _sizeFor(type), anchor: Anchor.center);
 
   static Vector2 _sizeFor(EnemyType t) {
     switch (t) {
@@ -87,8 +84,7 @@ class Enemy extends SpriteComponent
   }
 
   void _applyColor(Color c) {
-    paint = Paint()
-      ..colorFilter = ColorFilter.mode(c, BlendMode.srcIn);
+    paint = Paint()..colorFilter = ColorFilter.mode(c, BlendMode.srcIn);
   }
 
   @override
@@ -117,9 +113,9 @@ class Enemy extends SpriteComponent
   }
 
   void _tryDropPowerUp() {
-    // 25% chance to drop a power-up
+    // 4% chance to drop a power-up
     final rand = math.Random();
-    if (rand.nextDouble() < 0.25) {
+    if (rand.nextDouble() < 0.04) {
       final types = PowerUpType.values;
       final picked = types[rand.nextInt(types.length)];
       game.add(PowerUp(type: picked, spawnPosition: position.clone()));

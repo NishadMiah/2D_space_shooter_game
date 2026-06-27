@@ -22,7 +22,8 @@ class SpaceShooterGame extends FlameGame
   int highestLevelUnlocked = 1;
   int _selectedLevel = 1; // level chosen from level select
   int enemiesKilled = 0;
-  int _enemiesForNextLevel = 5;
+  int _enemiesForNextLevel = 25;
+  int _killsPerLevel = 25; // grows by 5 each level-up
 
   // ─── Lives ────────────────────────────────────────────────────────────────
   int lives = 3;
@@ -187,7 +188,10 @@ class SpaceShooterGame extends FlameGame
   void onEnemyKilled() {
     enemiesKilled++;
     if (enemiesKilled >= _enemiesForNextLevel) {
-      _enemiesForNextLevel += 5;
+      // Random multiplier ×1.5 to ×2.5 — keeps each level length surprising
+      final factor = 1.5 + Random().nextDouble(); // 1.5 → 2.5
+      _killsPerLevel = (_killsPerLevel * factor).round();
+      _enemiesForNextLevel += _killsPerLevel;
       currentLevel++;
       levelText.text = 'LVL $currentLevel';
       _updateBulletHUD();
@@ -331,8 +335,16 @@ class SpaceShooterGame extends FlameGame
     score = 0;
     lives = 3;
     currentLevel = startLevel;
-    enemiesKilled = (startLevel - 1) * 5; // normalise kill count for level
-    _enemiesForNextLevel = startLevel * 5;
+    // Kills double each level: 25 → 50 → 100 → 200 → …
+    int totalKills = 0;
+    int kpl = 25;
+    for (int i = 1; i < startLevel; i++) {
+      totalKills += kpl;
+      kpl *= 2;
+    }
+    enemiesKilled = totalKills;
+    _killsPerLevel = kpl;
+    _enemiesForNextLevel = totalKills + kpl;
     isShielded = false;
     isSpeedBoost = false;
     _bulletTimer = 0;
