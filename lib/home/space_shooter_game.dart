@@ -130,7 +130,7 @@ class SpaceShooterGame extends FlameGame
     // HUD — Lives (top-right)
     livesText = TextComponent(
       text: '❤️ ❤️ ❤️',
-      position: Vector2(size.x - 16, 65),
+      position: Vector2(size.x - 76, 65),
       anchor: Anchor.topRight,
       textRenderer: TextPaint(style: const TextStyle(fontSize: 20)),
     );
@@ -139,7 +139,7 @@ class SpaceShooterGame extends FlameGame
     // HUD — Bullet count (top-right, second row)
     bulletIndicator = TextComponent(
       text: '• ×1',
-      position: Vector2(size.x - 16, 93),
+      position: Vector2(size.x - 76, 93),
       anchor: Anchor.topRight,
       textRenderer: TextPaint(
         style: const TextStyle(
@@ -290,21 +290,24 @@ class SpaceShooterGame extends FlameGame
     isShielded = true;
     _shieldTimer = 3.0;
     // Remove old shield visual first
-    player.children.whereType<CircleComponent>().forEach((c) => c.removeFromParent());
-    final ring = CircleComponent(
-      radius: 35,
-      paint: Paint()
-        ..color = const Color(0xFF44AAFF).withAlpha(70)
-        ..style = PaintingStyle.fill,
-    )..add(
+    player.children.whereType<CircleComponent>().forEach(
+      (c) => c.removeFromParent(),
+    );
+    final ring =
         CircleComponent(
           radius: 35,
           paint: Paint()
-            ..color = const Color(0xFF44AAFF)
-            ..style = PaintingStyle.stroke
-            ..strokeWidth = 3,
-        ),
-      );
+            ..color = const Color(0xFF44AAFF).withAlpha(70)
+            ..style = PaintingStyle.fill,
+        )..add(
+          CircleComponent(
+            radius: 35,
+            paint: Paint()
+              ..color = const Color(0xFF44AAFF)
+              ..style = PaintingStyle.stroke
+              ..strokeWidth = 3,
+          ),
+        );
     ring.anchor = Anchor.center;
     ring.position = Vector2(player.size.x / 2, player.size.y / 2);
     player.add(ring);
@@ -411,7 +414,9 @@ class SpaceShooterGame extends FlameGame
     _updateBulletHUD();
 
     player.position = Vector2(size.x / 2, size.y - 100);
-    player.children.whereType<CircleComponent>().forEach((c) => c.removeFromParent());
+    player.children.whereType<CircleComponent>().forEach(
+      (c) => c.removeFromParent(),
+    );
 
     // Clear stale game objects
     children.whereType<Enemy>().forEach((e) => e.removeFromParent());
@@ -459,7 +464,9 @@ class SpaceShooterGame extends FlameGame
     children.whereType<Enemy>().forEach((e) => e.removeFromParent());
     children.whereType<Bullet>().forEach((b) => b.removeFromParent());
     children.whereType<PowerUp>().forEach((p) => p.removeFromParent());
-    player.children.whereType<CircleComponent>().forEach((c) => c.removeFromParent());
+    player.children.whereType<CircleComponent>().forEach(
+      (c) => c.removeFromParent(),
+    );
     overlays.remove('GameOver');
     overlays.remove('PauseButton');
     overlays.remove('PauseMenu');
@@ -496,9 +503,9 @@ class SpaceShooterGame extends FlameGame
       _shieldTimer -= dt;
       if (_shieldTimer <= 0) {
         isShielded = false;
-        player.children
-            .whereType<CircleComponent>()
-            .forEach((c) => c.removeFromParent());
+        player.children.whereType<CircleComponent>().forEach(
+          (c) => c.removeFromParent(),
+        );
       }
     }
 
@@ -530,8 +537,10 @@ class SpaceShooterGame extends FlameGame
   // ──────────────────────────────────────────────────────────────────────────
   @override
   void onPanUpdate(DragUpdateInfo info) {
-    player.position.x = (player.position.x + info.delta.global.x)
-        .clamp(0.0, size.x - player.size.x);
+    player.position.x = (player.position.x + info.delta.global.x).clamp(
+      0.0,
+      size.x - player.size.x,
+    );
   }
 
   @override
