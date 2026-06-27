@@ -4,7 +4,7 @@ import 'package:flame/components.dart';
 import 'package:aetherius/home/space_shooter_game.dart';
 import 'package:flutter/material.dart';
 
-enum PowerUpType { heart, shield, speed }
+enum PowerUpType { heart, shield, speed, bulletUp }
 
 class PowerUp extends PositionComponent
     with CollisionCallbacks, HasGameReference<SpaceShooterGame> {
@@ -26,6 +26,8 @@ class PowerUp extends PositionComponent
         return '🛡️';
       case PowerUpType.speed:
         return '⚡';
+      case PowerUpType.bulletUp:
+        return '🚀';
     }
   }
 
@@ -37,6 +39,8 @@ class PowerUp extends PositionComponent
         return const Color(0xFF44AAFF);
       case PowerUpType.speed:
         return const Color(0xFFFFDD00);
+      case PowerUpType.bulletUp:
+        return const Color(0xFF00FFCC);
     }
   }
 

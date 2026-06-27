@@ -6,6 +6,7 @@ import 'package:flame/experimental.dart';
 import 'package:flame/game.dart';
 import 'package:aetherius/home/bullet.dart';
 import 'package:aetherius/home/enemy.dart';
+import 'package:aetherius/home/enemy_bullet.dart';
 import 'package:aetherius/home/high_score_service.dart';
 import 'package:aetherius/home/power_up.dart';
 import 'package:flutter/material.dart';
@@ -41,16 +42,15 @@ class SpaceShooterGame extends FlameGame
 
   // ─── Bullet System ────────────────────────────────────────────────────────
   double _bulletTimer = 0;
-
   double get _bulletPeriod => isSpeedBoost ? 0.08 : 0.2;
 
-  /// Bullets fired per salvo, based on current level.
-  /// LVL 1-2 → 1, LVL 3-4 → 2, LVL 5+ → 3
-  int get bulletCount {
-    if (currentLevel >= 5) return 3;
-    if (currentLevel >= 3) return 2;
-    return 1;
-  }
+  /// Current bullet count (1–5). Increased by the 🚀 bullet power-up.
+  int bulletCount = 1;
+  static const int maxBulletCount = 5;
+
+  // ─── Random sky power-up spawner ──────────────────────────────────────────
+  double _powerUpSpawnTimer = 0;
+  double _nextPowerUpSpawn = 10.0; // first drop after 10 s
 
   // ─── Spawner ──────────────────────────────────────────────────────────────
   SpawnComponent? enemySpawner;
@@ -238,6 +238,18 @@ class SpaceShooterGame extends FlameGame
     if (lives <= 0) gameOver();
   }
 
+  /// Called when a tank enemy bullet hits the player.
+  /// Loses 1 bullet lane first; loses a life if already at minimum.
+  void onEnemyBulletHit() {
+    if (isShielded) return;
+    if (bulletCount > 1) {
+      bulletCount--;
+      _updateBulletHUD();
+    } else {
+      loseLife();
+    }
+  }
+
   void gainLife() {
     if (lives < maxLives) {
       lives++;
@@ -256,6 +268,15 @@ class SpaceShooterGame extends FlameGame
         _activateShield();
       case PowerUpType.speed:
         _activateSpeed();
+      case PowerUpType.bulletUp:
+        _upgradeBullet();
+    }
+  }
+
+  void _upgradeBullet() {
+    if (bulletCount < maxBulletCount) {
+      bulletCount++;
+      _updateBulletHUD();
     }
   }
 
@@ -297,17 +318,39 @@ class SpaceShooterGame extends FlameGame
     // During intro always fire single bullet
     final count = isIntro ? 1 : bulletCount;
 
+    // Even spread positions for 1–5 bullets across player width (~50px)
+    // Offsets: 1→[25], 2→[10,40], 3→[5,25,45], 4→[3,18,33,48], 5→[1,13,25,37,49]
     switch (count) {
       case 1:
-        add(Bullet()..position = Vector2(px + 20, py));
+        add(Bullet()..position = Vector2(px + 25, py));
       case 2:
-        add(Bullet()..position = Vector2(px + 8, py));
-        add(Bullet()..position = Vector2(px + 32, py));
-      default:
-        add(Bullet()..position = Vector2(px + 20, py));
-        add(Bullet()..position = Vector2(px + 6, py));
-        add(Bullet()..position = Vector2(px + 34, py));
+        add(Bullet()..position = Vector2(px + 10, py));
+        add(Bullet()..position = Vector2(px + 40, py));
+      case 3:
+        add(Bullet()..position = Vector2(px + 5, py));
+        add(Bullet()..position = Vector2(px + 25, py));
+        add(Bullet()..position = Vector2(px + 45, py));
+      case 4:
+        add(Bullet()..position = Vector2(px + 3, py));
+        add(Bullet()..position = Vector2(px + 18, py));
+        add(Bullet()..position = Vector2(px + 33, py));
+        add(Bullet()..position = Vector2(px + 48, py));
+      default: // 5
+        add(Bullet()..position = Vector2(px + 1, py));
+        add(Bullet()..position = Vector2(px + 13, py));
+        add(Bullet()..position = Vector2(px + 25, py));
+        add(Bullet()..position = Vector2(px + 37, py));
+        add(Bullet()..position = Vector2(px + 49, py));
     }
+  }
+
+  /// Drops a random power-up from a random X position at the top of the screen.
+  void _spawnSkyPowerUp() {
+    final rand = Random();
+    final x = 20 + rand.nextDouble() * (size.x - 40);
+    final types = PowerUpType.values;
+    final type = types[rand.nextInt(types.length)];
+    add(PowerUp(type: type, spawnPosition: Vector2(x, -20)));
   }
 
   // ──────────────────────────────────────────────────────────────────────────
@@ -347,7 +390,10 @@ class SpaceShooterGame extends FlameGame
     _enemiesForNextLevel = totalKills + kpl;
     isShielded = false;
     isSpeedBoost = false;
+    bulletCount = 1;
     _bulletTimer = 0;
+    _powerUpSpawnTimer = 0;
+    _nextPowerUpSpawn = 10 + Random().nextDouble() * 5; // first drop 10–15 s in
 
     scoreText.text = 'Score: 0';
     levelText.text = 'LVL $currentLevel';
@@ -361,6 +407,7 @@ class SpaceShooterGame extends FlameGame
     // Clear stale game objects
     children.whereType<Enemy>().forEach((e) => e.removeFromParent());
     children.whereType<Bullet>().forEach((b) => b.removeFromParent());
+    children.whereType<EnemyBullet>().forEach((b) => b.removeFromParent());
     children.whereType<PowerUp>().forEach((p) => p.removeFromParent());
 
     // Enemy spawner
@@ -412,11 +459,21 @@ class SpaceShooterGame extends FlameGame
   void update(double dt) {
     super.update(dt);
 
-    // Auto bullet fire (fires in both intro and gameplay)
+    // Auto bullet fire
     _bulletTimer += dt;
     if (_bulletTimer >= _bulletPeriod) {
       _bulletTimer = 0;
       _fireBullets();
+    }
+
+    // Random sky power-up drops (only during gameplay, not intro)
+    if (!isIntro) {
+      _powerUpSpawnTimer += dt;
+      if (_powerUpSpawnTimer >= _nextPowerUpSpawn) {
+        _powerUpSpawnTimer = 0;
+        _nextPowerUpSpawn = 6 + Random().nextDouble() * 8; // 6–14 s
+        _spawnSkyPowerUp();
+      }
     }
 
     // Shield timer

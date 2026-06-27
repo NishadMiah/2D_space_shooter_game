@@ -2,6 +2,7 @@ import 'dart:math' as math;
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 import 'package:aetherius/home/bullet.dart';
+import 'package:aetherius/home/enemy_bullet.dart';
 import 'package:aetherius/home/power_up.dart';
 import 'package:aetherius/home/space_shooter_game.dart';
 import 'package:flutter/material.dart';
@@ -14,6 +15,10 @@ class Enemy extends SpriteComponent
   late int _hp;
   bool _flashing = false;
   double _flashTimer = 0;
+
+  // Tank shoot timer
+  double _shootTimer = 0;
+  late double _shootPeriod; // randomised per tank instance
 
   Enemy({this.type = EnemyType.basic})
     : super(size: _sizeFor(type), anchor: Anchor.center);
@@ -81,6 +86,11 @@ class Enemy extends SpriteComponent
     _applyColor(_color);
     angle = math.pi;
     add(RectangleHitbox());
+
+    // Each tank fires at a random interval between 1.5 and 3.5 seconds
+    if (type == EnemyType.tank) {
+      _shootPeriod = 1.5 + math.Random().nextDouble() * 2.0;
+    }
   }
 
   void _applyColor(Color c) {
@@ -102,6 +112,17 @@ class Enemy extends SpriteComponent
       }
     }
 
+    // Tank fires enemy bullets at the player
+    if (type == EnemyType.tank && !game.isIntro) {
+      _shootTimer += dt;
+      if (_shootTimer >= _shootPeriod) {
+        _shootTimer = 0;
+        // Randomise next shoot interval slightly
+        _shootPeriod = 1.5 + math.Random().nextDouble() * 2.0;
+        _fireAtPlayer();
+      }
+    }
+
     if (position.y > game.size.y) {
       removeFromParent();
       if (game.isIntro) {
@@ -112,10 +133,17 @@ class Enemy extends SpriteComponent
     }
   }
 
+  void _fireAtPlayer() {
+    final bullet = EnemyBullet()
+      ..position = Vector2(position.x, position.y + size.y / 2);
+    game.add(bullet);
+  }
+
   void _tryDropPowerUp() {
-    // 4% chance to drop a power-up
+    // Random drop chance between 2% and 12% — different every kill
     final rand = math.Random();
-    if (rand.nextDouble() < 0.04) {
+    final dropChance = 0.02 + rand.nextDouble() * 0.10;
+    if (rand.nextDouble() < dropChance) {
       final types = PowerUpType.values;
       final picked = types[rand.nextInt(types.length)];
       game.add(PowerUp(type: picked, spawnPosition: position.clone()));
